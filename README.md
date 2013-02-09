@@ -1,4 +1,4 @@
 marx
 ====
 
-Marx
+Reactive extensions for Lua
