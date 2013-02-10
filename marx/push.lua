@@ -10,7 +10,7 @@ end
 function sequence(on_subscription)
   local t = {}
   t.observers = {}
-  
+
   t._subscribe = function(observer)
     table.insert(t.observers, observer)
     on_subscription(observer)
@@ -27,8 +27,10 @@ function sequence(on_subscription)
 
   t.map = function(transform)
     local composition = sequence(function(observer)
-      t.subscribe(function(value)
-        observer.on_next(transform(value))
+      t.subscribe(function(value, error)
+        if value and not error then 
+          value = transform(value) end
+        observer.on_next(value, error)
       end)
     end)
     return composition
@@ -36,14 +38,42 @@ function sequence(on_subscription)
 
   t.filter = function(predicate)
     local composition = sequence(function(observer)
-      t.subscribe(function(value)
-        if predicate(value) then
-          observer.on_next(value)
+      t.subscribe(function(value, error)
+        if value then
+          if predicate(value) then
+            observer.on_next(value)
+          end
+        else
+          observer.on_next(nil, error)
         end
       end)
     end)
     return composition
   end
+  
+  t.concat = function(seq)
+    local composition = sequence(function(observer)
+      t.subscribe(function(value, error)
+        if value then
+          observer.on_next(value)
+        else
+          if error then
+            observer.on_next(nil, error)
+          else
+            seq.subscribe(function(value, error)
+              if value then
+                observer.on_next(value)
+              else
+                observer.on_next(value, error)
+              end
+            end)
+          end
+        end
+      end)
+    end)
+    return composition
+  end
+  
   return t
 end
 
@@ -52,5 +82,6 @@ function range(min, max)
     for i = min,max do
       observer.on_next(i)
     end
+    observer.on_next(nil)
   end)
 end
