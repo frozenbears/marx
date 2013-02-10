@@ -14,25 +14,19 @@ end)
 -----------------------------------------------------
 
 numbers.subscribe(function(value)
-   if value then
-     print("All numbers: "..value)
-   else
-     print("done!")
-   end
+  print("All numbers: "..value)
+end, function()
+  print("done!")
 end)
 
 evens.subscribe(function(value)
-  if value then
-    print("All even numbers: " .. value)
-  else
-    print("done!!")
-  end
+  print("All even numbers: " .. value)
+end, function()
+  print("done!!!")
 end)
 
 abloobloobloo.subscribe(function(value)
-  if value then
-    print(value)
-  else
-    print("done!!!")
-  end
+  print(value)
+end, function()
+  print("DONE! <3 <3 <3")
 end)

@@ -1,9 +1,12 @@
 
 module('marx.push', package.seeall)
 
-function observer(on_next)
+function observer(on_next, on_complete, on_error)
   local t = {}
+  local empty = function() end
   t.on_next = on_next
+  t.on_complete = on_complete or  empty
+  t.on_error = on_error or empty
   return t
 end
 
@@ -11,41 +14,39 @@ function sequence(on_subscription)
   local t = {}
   t.observers = {}
 
-  t._subscribe = function(observer)
+  t.subscribe_observer = function(observer)
     table.insert(t.observers, observer)
     on_subscription(observer)
   end
  
-  t.subscribe = function(arg)
-    if type(arg) == "table" then
-      t._subscribe(arg)
-    else
-      t._subscribe(observer(arg))
-    end
+  t.subscribe = function(on_next, on_complete, on_error)
+    t.subscribe_observer(observer(on_next, on_complete, on_error))
     return t
   end
 
   t.map = function(transform)
     local composition = sequence(function(observer)
-      t.subscribe(function(value, error)
-        if value and not error then 
-          value = transform(value) end
-        observer.on_next(value, error)
+      t.subscribe(function(value)
+        observer.on_next(transform(value))
+      end, function()
+        observer.on_complete()
+      end, function(e)
+        observer.on_error(e)
       end)
     end)
     return composition
   end
 
   t.filter = function(predicate)
-    local composition = sequence(function(observer)
-      t.subscribe(function(value, error)
-        if value then
-          if predicate(value) then
-            observer.on_next(value)
-          end
-        else
-          observer.on_next(nil, error)
+    local composition = sequence(function(observer)  
+      t.subscribe(function(value)
+        if predicate(value) then
+          observer.on_next(value)
         end
+      end, function()
+        observer.on_complete()
+      end, function(e)
+        observer.on_error(e)
       end)
     end)
     return composition
@@ -53,22 +54,18 @@ function sequence(on_subscription)
   
   t.concat = function(seq)
     local composition = sequence(function(observer)
-      t.subscribe(function(value, error)
-        if value then
+      t.subscribe(function(value)
+        observer.on_next(value)
+      end, function()
+        seq.subscribe(function(value)
           observer.on_next(value)
-        else
-          if error then
-            observer.on_next(nil, error)
-          else
-            seq.subscribe(function(value, error)
-              if value then
-                observer.on_next(value)
-              else
-                observer.on_next(value, error)
-              end
-            end)
-          end
-        end
+        end, function()
+          observer.on_complete()
+        end, function(e)
+          observer.on_error(e)
+        end)
+      end, function(e)
+        observer.on_error(e)
       end)
     end)
     return composition
@@ -82,6 +79,6 @@ function range(min, max)
     for i = min,max do
       observer.on_next(i)
     end
-    observer.on_next(nil)
+    observer.on_complete()
   end)
 end

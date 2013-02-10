@@ -9,9 +9,7 @@ concatenated = numbers.concat(othernumbers)
 -----------------------------------------------------
 
 concatenated.subscribe(function(value)
-  if value then 
-    print(value)
-  else
-    print("done!")
-  end
+  print(value)
+end, function()
+  print("done")
 end)
