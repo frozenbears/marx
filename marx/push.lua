@@ -70,6 +70,19 @@ function sequence(on_subscription)
     end)
     return composition
   end
+
+  t.fold = function(accum, comparator)
+    local composition = sequence(function(observer)
+      t.subscribe(function(value)
+        accum = comparator(accum, value)
+      end, function()
+        observer.on_next(accum)
+      end, function(e)
+        observer.on_error(e)
+      end)
+    end)
+    return composition  
+  end
   
   return t
 end

@@ -7,12 +7,12 @@ function sequence(on_next)
 
   t.map = function(transform)
     local composition = sequence(function()
-      local result, error = t.next()
+      local result, e = t.next()
       if result then 
         result = transform(result)
         return result
       end
-      return nil, error
+      return nil, e
     end)
     return composition
   end
@@ -20,13 +20,13 @@ function sequence(on_next)
   t.filter = function(predicate)
     local composition = sequence(function()
       while true do
-        local result, error = t.next()
+        local result, e = t.next()
         if result then
           if predicate(result) then
             return result
           end
         else
-          return nil, error
+          return nil, e
         end
       end
     end)
@@ -35,11 +35,31 @@ function sequence(on_next)
 
   t.concat = function(seq)
     local composition = sequence(function()
-      local result, error = t.next()
-      if not result and not error then
-        result, error = seq.next()
+      local result, e = t.next()
+      if not result and not e then
+        result, e = seq.next()
       end
-      return result, error
+      return result, e
+    end)
+    return composition
+  end
+
+  t.fold = function(accum, comparator)
+    local done = false
+    local composition = sequence(function()
+      while true do
+        local result, e = t.next()
+        if result then
+          accum = comparator(accum, result)
+        else
+          if not done then
+            done = true
+            return accum
+          else
+            return nil, e
+          end
+        end
+      end
     end)
     return composition
   end
