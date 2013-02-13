@@ -4,6 +4,22 @@ require 'marx.push'
 
 module('marx.tests', package.seeall, lunit.testcase)
 
+function equiv(t1, t2)
+  for k,v in pairs(t1) do
+    if t2[k] ~= v then
+      return false
+    end
+  end
+
+  for k,v in ipairs(t2) do
+    if t1[k] ~= v then
+      return false
+    end
+  end
+
+  return true
+end
+
 function test_push_observer()
   local on_next = function(value)
   end
@@ -66,4 +82,15 @@ function test_push_sequence_subscribe()
 
   assert_equal(v, 1)
   assert_true(done)
+end
+
+function test_push_range()
+  local seq = marx.push.range(1, 4)
+  local results = {}
+  
+  seq.subscribe(function(value)
+    table.insert(results, value)
+  end)
+
+  assert_true(equiv(results, {1,2,3,4}))
 end
