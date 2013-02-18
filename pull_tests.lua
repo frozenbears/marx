@@ -31,7 +31,7 @@ end
 function compare(seq, v)
  
   -- if we exect a table, buid one by inserting elements of the sequence
-  -- as they are puled
+  -- as they are pulled
   if type(v) == 'table' then
       local results = {}
 
@@ -43,7 +43,7 @@ function compare(seq, v)
   else
       local result = nil
    
-      -- otherwise just pul the first value and return an equality comparison
+      -- otherwise just pull the first value and return an equality comparison
       return v == seq.next() 
   end
 end
