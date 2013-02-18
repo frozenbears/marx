@@ -80,6 +80,16 @@ function constant(x)
   end)
 end
 
+function range(min, max)
+  local i = min
+  return sequence(function()
+    local ret = nil
+    if i <= max then ret = i end
+    i = i + 1
+    return ret
+  end)
+end
+
 
 
 
