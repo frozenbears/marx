@@ -31,22 +31,25 @@ function compare(seq, v)
   -- as they arrive
   if type(v) == 'table' then
       local results = {}
-  
+
+      -- overload equality operator with comparison by value
+      setmetatable(results, {__eq = equiv})
+      setmetatable(v, {__eq = equiv})
+
       seq.subscribe(function(value)
         table.insert(results, value)
       end)
   
-      return equiv(results, v)
+      assert_equal(results, v)
   else
       local result = nil
    
-      -- otherwise just store the subscription value and return an equality comparison
-      
+      -- otherwise just store the value
       seq.subscribe(function(value)
         result = value
       end)
       
-      return result == v
+      assert_equal(result, v)
   end
 end
 
@@ -117,28 +120,28 @@ function test_push_sequence_subscribe()
 end
 
 function test_push_range()
-  assert_true(compare(numbers, {1,2,3,4}))
+  compare(numbers, {1,2,3,4})
 end
 
 function test_push_sequence_map()
-  assert_true(compare(numbers.map(function(value)
+  compare(numbers.map(function(value)
     return value * 3
-  end), {3,6,9,12}))  
+  end), {3,6,9,12})
 end
 
 function test_push_sequence_filter()
-  assert_true(compare(numbers.filter(function(value)
+  compare(numbers.filter(function(value)
     return value % 2 == 0
-  end), {2,4}))
+  end), {2,4})
 end
 
 function test_push_sequence_fold()
-  assert_true(compare(numbers.fold(0, function(accum, value)
+  compare(numbers.fold(0, function(accum, value)
     return accum + value
-  end), 10))
+  end), 10)
 end
 
 function test_push_sequence_concat()
   local seq = marx.push.range(5,6)
-  assert_true(compare(numbers.concat(seq), {1,2,3,4,5,6}))
+  compare(numbers.concat(seq), {1,2,3,4,5,6})
 end

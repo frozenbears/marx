@@ -83,6 +83,23 @@ function sequence(on_subscription)
     end)
     return composition  
   end
+
+  setmetatable(t, {
+    __eq = function(t, other)
+      for k,v in pairs(t) do
+        if other[k] ~= v then
+          return false
+        end
+      end
+
+      for k,v in pairs(other) do
+        if t[k] ~= v then
+          return false
+        end
+      end
+    return true
+    end
+  })
   
   return t
 end

@@ -30,49 +30,53 @@ end
 --compare a pull sequence with an expected result value
 function compare(seq, v)
  
-  -- if we exect a table, buid one by inserting elements of the sequence
+  -- if we exect a table, build one by inserting elements of the sequence
   -- as they are pulled
   if type(v) == 'table' then
       local results = {}
+
+      -- overload equality operator with comparison by value
+      setmetatable(results, {__eq = equiv})
+      setmetatable(v, {__eq = equiv})
 
       for item in seq.iterator() do
         table.insert(results, item)
       end
 
-      return equiv(results, v)
+      assert_equal(results, v)
   else
       local result = nil
-   
-      -- otherwise just pull the first value and return an equality comparison
-      return v == seq.next() 
+ 
+      -- otherwise just pull the first value
+      assert_equal(seq.next(), v)
   end
 end
 
 ---------------------------
 
 function test_pull_range()
-  assert_true(compare(numbers(), {1,2,3,4}))
+  compare(numbers(), {1,2,3,4})
 end
 
 function test_pull_sequence_map()
-  assert_true(compare(numbers().map(function(value)
+  compare(numbers().map(function(value)
     return value * 3
-  end), {3,6,9,12}))  
+  end), {3,6,9,12})
 end
 
 function test_pull_sequence_filter()
-  assert_true(compare(numbers().filter(function(value)
+  compare(numbers().filter(function(value)
     return value % 2 == 0
-  end), {2,4}))
+  end), {2,4})
 end
 
 function test_pull_sequence_fold()
-  assert_true(compare(numbers().fold(0, function(accum, value)
+  compare(numbers().fold(0, function(accum, value)
     return accum + value
-  end), 10))
+  end), 10)
 end
 
 function test_pull_sequence_concat()
   local seq = marx.pull.range(5,6)
-  assert_true(compare(numbers().concat(seq), {1,2,3,4,5,6}))
+  compare(numbers().concat(seq), {1,2,3,4,5,6})
 end
