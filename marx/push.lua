@@ -104,6 +104,26 @@ function sequence(on_subscription)
   return t
 end
 
+function subject()
+  local t = sequence(function()end)
+  t.on_next = function(...)
+    for i,observer in ipairs(t.observers) do
+      observer.on_next(...)
+    end
+  end
+  t.on_error = function(e)
+    for i,observer in ipairs(t.observers) do
+      observer.on_error(e)
+    end
+  end
+  t.on_complete = function()
+    for i,observer in ipairs(t.observers) do
+      observer.on_complete()
+    end
+  end
+  return t
+end
+
 function range(min, max)
   return sequence(function(observer)
     for i = min,max do

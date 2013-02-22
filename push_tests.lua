@@ -145,3 +145,24 @@ function test_push_sequence_concat()
   local seq = marx.push.range(5,6)
   compare(numbers.concat(seq), {1,2,3,4,5,6})
 end
+
+function test_push_subject()
+  local sub = marx.push.subject()
+  local results = {}
+  local done = false
+  local err = nil
+  sub.subscribe(function(value1, value2)
+    table.insert(results, {value1, value2})
+  end, function()
+    done = true
+  end, function()
+    err = "error"
+  end)
+  sub.on_next(1,2)
+  sub.on_next(3,4)
+  sub.on_error("error")
+  sub.on_complete()
+  assert_false(equiv(results, {{1,2},{3,4}}))
+  assert_equal(err, "error")
+  assert_true(done)
+end
