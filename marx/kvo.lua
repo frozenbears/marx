@@ -3,6 +3,7 @@ module('marx.kvo', package.seeall)
 require 'marx.push'
 
 local index = {}
+local empty = function() end
 
 function build_metatable(on_read, on_write)
   local mt = {
@@ -17,15 +18,16 @@ function build_metatable(on_read, on_write)
   return mt
 end
 
-function build_proxy(t)
-  local proxy = {}
-  proxy[index] = t
-  return proxy
+function proxy(t)
+  local p = {}
+  p[index] = t
+  setmetatable(p, build_metatable(empty, empty))
+  return p
 end
 
-function bind(proxy)
+function bind(p)
   local subject = marx.push.subject()
-  setmetatable(proxy, build_metatable(function(k)
+  setmetatable(p, build_metatable(function(k)
     subject.on_next(k)
   end, function(k, v)
     subject.on_next(k, v)
