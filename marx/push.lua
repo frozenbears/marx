@@ -120,20 +120,25 @@ end
 
 function subject()
   local t = sequence(function()end)
+  t._completed = false
   t.on_next = function(...)
-    for i,observer in ipairs(t.observers) do
-      observer.on_next(...)
+    if not t._completed then
+      for i,observer in ipairs(t.observers) do
+        observer.on_next(...)
+      end
     end
   end
   t.on_error = function(e)
     for i,observer in ipairs(t.observers) do
       observer.on_error(e)
     end
+    t._completed = true
   end
   t.on_complete = function()
     for i,observer in ipairs(t.observers) do
       observer.on_complete()
     end
+    t._completed = true
   end
   return t
 end
