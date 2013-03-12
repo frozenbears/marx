@@ -166,3 +166,17 @@ function test_push_subject()
   assert_equal(err, "error")
   assert_true(done)
 end
+
+function test_push_disposable()
+  local sub = marx.push.subject()
+  local results = {}
+  seq = sub.subscribe(function(value)
+    table.insert(results, value)
+  end)
+  sub.on_next(1)
+  sub.on_next(2)
+  sub.on_next(3)
+  seq.dispose()
+  sub.on_next(4)
+  assert_true(equiv(results, {1,2,3}))
+end

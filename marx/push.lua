@@ -10,6 +10,20 @@ function observer(on_next, on_complete, on_error)
   return t
 end
 
+function disposable(subscribable, observer)
+  local t = {}
+  t._subscribable = subscribable
+  t._observer = observer
+  t.dispose = function()
+    for i,v in pairs(t._subscribable.observers) do
+      if v == t._observer then 
+        table.remove(t._subscribable.observers, i)
+      end
+    end
+  end
+  return t
+end
+
 function sequence(on_subscription)
   local t = {}
   t.observers = {}
@@ -17,11 +31,11 @@ function sequence(on_subscription)
   t.subscribe_observer = function(observer)
     table.insert(t.observers, observer)
     on_subscription(observer)
+    return disposable(t, observer)
   end
  
   t.subscribe = function(on_next, on_complete, on_error)
-    t.subscribe_observer(observer(on_next, on_complete, on_error))
-    return t
+    return t.subscribe_observer(observer(on_next, on_complete, on_error))
   end
 
   t.map = function(transform)
