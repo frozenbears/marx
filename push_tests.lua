@@ -162,6 +162,7 @@ function test_push_subject()
   sub.on_next(3,4)
   sub.on_error("error")
   sub.on_complete()
+  sub.on_next(5,6) -- this should do nothing
   assert_false(equiv(results, {{1,2},{3,4}}))
   assert_equal(err, "error")
   assert_true(done)
