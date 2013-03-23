@@ -143,6 +143,41 @@ function subject()
   return t
 end
 
+function returns(...)
+  local a = arg
+  return sequence(function(observer)
+    observer.on_next(unpack(a))
+    observer.on_complete()
+  end)
+end
+
+function empty()
+  return sequence(function(observer)
+    observer.on_complete()
+  end)
+end
+
+function never()
+  return sequence(function(observer)end)
+end
+
+function error(e)
+  return sequence(function(observer)
+    observer.on_error(e)
+  end)
+end
+
+function generate(initial, cond, iterator, selector)
+  return sequence(function(observer)
+    local state = initial
+    while not cond(state) do
+      observer.on_next(selector(state))
+      state = iterator(state)
+    end
+    observer.on_complete()
+  end)
+end
+
 function range(min, max)
   return sequence(function(observer)
     for i = min,max do
