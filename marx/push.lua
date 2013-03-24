@@ -10,28 +10,11 @@ function observer(on_next, on_complete, on_error)
   return t
 end
 
-function disposable(subscribable, observer)
-  local t = {}
-  t._subscribable = subscribable
-  t._observer = observer
-  t.dispose = function()
-    for i,v in pairs(t._subscribable.observers) do
-      if v == t._observer then 
-        table.remove(t._subscribable.observers, i)
-      end
-    end
-  end
-  return t
-end
-
 function sequence(on_subscription)
   local t = {}
-  t.observers = {}
 
   t.subscribe_observer = function(observer)
-    table.insert(t.observers, observer)
     on_subscription(observer)
-    return disposable(t, observer)
   end
  
   t.subscribe = function(on_next, on_complete, on_error)
@@ -118,9 +101,31 @@ function sequence(on_subscription)
   return t
 end
 
+-- only applicable to subject at the moment 
+function disposable(subscribable, observer)
+  local t = {}
+  t._subscribable = subscribable
+  t._observer = observer
+  t.dispose = function()
+    for i,v in pairs(t._subscribable.observers) do
+      if v == t._observer then
+        table.remove(t._subscribable.observers, i)
+      end
+    end
+  end
+  return t
+end
+
 function subject()
   local t = sequence(function()end)
+  t.observers = {}
   t._completed = false
+  
+  t.subscribe_observer = function(observer)
+    table.insert(t.observers, observer)
+    return disposable(t, observer)
+  end
+ 
   t.on_next = function(...)
     if not t._completed then
       for i,observer in ipairs(t.observers) do
