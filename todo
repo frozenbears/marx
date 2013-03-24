@@ -1,18 +1,8 @@
-Note: this list is not meant to be exhaustive
 
-[constructors]
+- unsubscription/disposal for sequences
 
-return
-empty
-never
-throw (?)
-timer (?)
-generate
+- proper lazy push sequences/early termination
 
-[implementation details]
+- many more operators
 
-unsubscription/disposal
-proper lazy push sequences (corecursion?)
-
-[operators]
-(tbd)
+- scheduling
