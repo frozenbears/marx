@@ -1,0 +1,18 @@
+Note: this list is not meant to be exhaustive
+
+[constructors]
+
+return
+empty
+never
+throw (?)
+timer (?)
+generate
+
+[implementation details]
+
+unsubscription/disposal
+proper lazy push sequences (corecursion?)
+
+[operators]
+(tbd)
