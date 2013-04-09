@@ -1,17 +1,20 @@
 
 module('marx.push', package.seeall)
 
+require 'marx.stream'
+
 function observer(on_next, on_complete, on_error)
   local t = {}
   local empty = function() end
   t.on_next = on_next
-  t.on_complete = on_complete or  empty
+  t.on_complete = on_complete or empty
   t.on_error = on_error or empty
   return t
 end
 
 function sequence(on_subscription)
-  local t = {}
+  local t = marx.stream.sequence()
+  t.type = marx.push
 
   t.subscribe_observer = function(observer)
     on_subscription(observer)
