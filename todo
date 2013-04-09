@@ -1,8 +1,20 @@
 
+- abstract streams
+  - bind implementation for push
+    - (don't worry about disposables for now)
+    - test out with existing operator, such as filter
+    - take implemenation (good example of early termination)
+    - implement other existing operators in stream as applicable
+  - bind implementation for pull
+    - do it
+    - test out with filter 
+    - take implementation
+    - implement other existing operators in stream
+  - unit tests
+  - merge
+
 - unsubscription/disposal for sequences
 
-- proper lazy push sequences/early termination
-
-- many more operators
+- more operators
 
 - scheduling
