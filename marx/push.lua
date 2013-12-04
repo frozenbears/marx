@@ -14,8 +14,7 @@ end
 
 function sequence(on_subscription)
   local t = marx.stream.sequence()
-  t.type = marx.push
-
+  
   t.subscribe_observer = function(observer)
     on_subscription(observer)
   end
@@ -26,8 +25,8 @@ function sequence(on_subscription)
 
   t.map = function(transform)
     local composition = sequence(function(observer)
-      t.subscribe(function(...)
-        observer.on_next(transform(...))
+      t.subscribe(function(v)
+        observer.on_next(transform(v))
       end, function()
         observer.on_complete()
       end, function(e)
@@ -39,9 +38,9 @@ function sequence(on_subscription)
 
   t.filter = function(predicate)
     local composition = sequence(function(observer)  
-      t.subscribe(function(...)
-        if predicate(...) then
-          observer.on_next(...)
+      t.subscribe(function(v)
+        if predicate(v) then
+          observer.on_next(v)
         end
       end, function()
         observer.on_complete()
@@ -54,11 +53,11 @@ function sequence(on_subscription)
   
   t.concat = function(seq)
     local composition = sequence(function(observer)
-      t.subscribe(function(...)
-        observer.on_next(...)
+      t.subscribe(function(v)
+        observer.on_next(v)
       end, function()
-        seq.subscribe(function(...)
-          observer.on_next(...)
+        seq.subscribe(function(v)
+          observer.on_next(v)
         end, function()
           observer.on_complete()
         end, function(e)
@@ -73,8 +72,8 @@ function sequence(on_subscription)
 
   t.fold = function(accum, comparator)
     local composition = sequence(function(observer)
-      t.subscribe(function(...)
-        accum = comparator(accum, ...)
+      t.subscribe(function(v)
+        accum = comparator(accum, v)
       end, function()
         observer.on_next(accum)
         observer.on_complete()
@@ -130,10 +129,10 @@ function subject()
     return disposable(t, observer)
   end
  
-  t.on_next = function(...)
+  t.on_next = function(v)
     if not t._completed then
       for i,observer in ipairs(t.observers) do
-        observer.on_next(...)
+        observer.on_next(v)
       end
     end
   end
@@ -152,7 +151,7 @@ function subject()
   return t
 end
 
-function returns(...)
+function returns(v)
   local a = arg
   return sequence(function(observer)
     observer.on_next(unpack(a))

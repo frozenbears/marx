@@ -3,8 +3,7 @@ module('marx.stream', package.seeall)
 
 function sequence()
   local t = {}
-  t.type = marx.stream
-
+  
   --abstract operators
   t.bind = function(binding)
     return nil
@@ -21,36 +20,36 @@ function sequence()
   --concrete operators
   t.flatten_map = function(f)
     return t.bind(function()
-      return function(term, ...)
-        return f(...)
+      return function(v)
+        return f(v)
       end
     end)
   end
 
   t.flatten = function()
-    return t.flatten_map(function(...)
-      return ...
+    return t.flatten_map(function(v)
+      return v
     end)
   end
 
   t.map = function(f)
-    return t.flatten_map(function(...)
-      return t.type.returns(...)
+    return t.flatten_map(function(v)
+      return t.returns(f(v))
     end)
   end
 
-  t.map_replace = function(object)
+  t.map_replace = function(v)
     return t.map(function()
-      return object
+      return v
     end)
   end
 
   t.filter = function(predicate)
-    return t.flatten_map(function(...)
-      if predicate(...) then
-        return t.type.returns(...)
+    return t.flatten_map(function(v)
+      if predicate(v) then
+        return t.returns(v)
       else
-        return t.type.empty()
+        return t.empty()
       end
     end)
   end
@@ -63,6 +62,6 @@ function empty()
   return nil
 end
 
-function returns(...)
+function returns(v)
   return nil
 end
