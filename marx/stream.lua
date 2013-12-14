@@ -1,67 +1,108 @@
 
-module('marx.stream', package.seeall)
+module('marx', package.seeall)
+require 'marx.core'
 
-function sequence()
-  local t = {}
-  
-  --abstract operators
-  t.bind = function(binding)
-    return nil
-  end
+Stream = marx.Object:new()
 
-  t.concat = function(stream)
-    return nil
-  end
+-- abstract constructors/operators
 
-  t.zip = function(stream)
-    return nil
-  end
-
-  --concrete operators
-  t.flatten_map = function(f)
-    return t.bind(function()
-      return function(v)
-        return f(v)
-      end
-    end)
-  end
-
-  t.flatten = function()
-    return t.flatten_map(function(v)
-      return v
-    end)
-  end
-
-  t.map = function(f)
-    return t.flatten_map(function(v)
-      return t.returns(f(v))
-    end)
-  end
-
-  t.map_replace = function(v)
-    return t.map(function()
-      return v
-    end)
-  end
-
-  t.filter = function(predicate)
-    return t.flatten_map(function(v)
-      if predicate(v) then
-        return t.returns(v)
-      else
-        return t.empty()
-      end
-    end)
-  end
-
-  return t
+function Stream:empty()
+  assert(nil, "empty must be overridden")
 end
 
--- abstract core sequence types
-function empty()
-  return nil
+function Stream:wrap(...)
+  assert(nil, "wrap must be overridden")
 end
 
-function returns(v)
-  return nil
+function Stream:bind(binding)
+  assert(nil, "bind must be overridden")
+end
+
+function Stream:concat(s)
+  assert(nil, "concat must be overridden")
+end
+
+function Stream:zip(s)
+  assert(nil, "zip must be overridden")
+end
+
+-- concrete operators
+
+function Stream:flatten_map(f)
+  return self:bind(function()
+    return function(...)
+      local stream = f(...)
+      --an assert would be good here
+      --though it would necessitate reflection
+      return stream
+    end
+  end)
+end
+
+function Stream:flatten()
+  return self:flatten_map(function(...)
+    return ...
+  end)
+end
+
+function Stream:map(f)
+  return self:flatten_map(function(...)
+    return self:wrap(f(...))
+  end)
+end
+
+function Stream:map_replace(...)
+  local args = {...}
+  return self:map(function(_)
+    return unpack(args)
+  end)
+end
+
+function Stream:filter(predicate)
+  return self:flatten_map(function(...)
+    if predicate(...) then
+      return self:wrap(...)
+    else
+      return self:empty()
+    end
+  end)
+end
+
+function Stream:ignore(...)
+  local args = {...}
+  return self:filter(function(...)
+    local inner = {...}
+    return not table.eq(inner,args)
+  end)
+end
+
+function Stream:start_with(...)
+  return self:wrap(...):concat(self)
+end
+
+function Stream:skip(n)
+  return self:bind(function()
+    local skipped = 0
+    return function(...)
+      if skipped >= n then return self:wrap(...) end
+      skipped = skipped + 1
+      return self:empty()
+    end
+  end)
+end
+
+function Stream:take(n)
+  return self:bind(function()
+    local taken = 0
+    return function(...)
+      local result = self:empty()
+      local stop = nil
+      
+      if taken < n then result = self:wrap(...) end
+      taken = taken + 1
+      if taken >= n then stop = true end
+      
+      return result
+    end
+  end)
 end
