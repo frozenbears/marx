@@ -25,3 +25,11 @@ function table.eq(t1, t2)
 
   return true
 end
+
+function table.delete(t, item)
+  for i = #t, 1, -1 do
+    if t[i] == item then
+      table.remove(t, i)
+    end
+  end
+end

@@ -91,6 +91,28 @@ function Stream:skip(n)
   end)
 end
 
+function Stream:skip_until(predicate)
+  return self:bind(function()
+    local skipping = true
+    return function(...)
+      if skipping then
+        if predicate(...) then
+          skipping = false
+        else
+          return self:empty()
+        end
+      end
+      return self:wrap(...)
+    end
+  end)
+end
+
+function Stream:skip_while(predicate)
+  return self:skip_until(function(...)
+    return not predicate(...)
+  end)
+end
+
 function Stream:take(n)
   return self:bind(function()
     local taken = 0
@@ -102,7 +124,77 @@ function Stream:take(n)
       taken = taken + 1
       if taken >= n then stop = true end
       
-      return result
+      return result, stop
     end
   end)
 end
+
+function Stream:take_until(predicate)
+  return self:bind(function()
+    return function(...)
+      local result = self:empty()
+      local stop = nil
+      if predicate(...) then
+        stop = true
+      else
+        result = self:wrap(...)
+      end
+      return result, stop
+    end
+  end)
+end
+
+function Stream:take_while(predicate)
+  return self:take_until(function(...)
+    return not predicate(...)
+  end)
+end
+
+function Stream:distinct_until_changed()
+  return self:bind(function()
+    local last = nil
+    local initial = true
+    return function(...)
+      if not initial and table.eq(last, {...}) then
+        return self:empty()
+      end
+
+      initial = false
+      last = {...}
+      return self:wrap(...)
+    end
+  end)
+end
+
+function Stream:join(streams, f)
+  local current = nil
+  for i,s in ipairs(streams) do
+    if not current then
+      current = s
+    else
+      current = f(current, s)
+    end
+  end
+
+  if not current then
+    return self:empty()
+  else
+    return current
+  end
+end
+
+--this feels like a terrible naming convention but not sure
+--how else to avoid a conflict with the instance method
+--...maybe use param reflection to determine which implemenation to use?
+function Stream:zip_all(streams)
+  return self:join(streams, function(left, right)
+    return left:zip(right)
+  end)
+end
+
+function Stream:concat_all(streams)
+  return self:join(streams, function(left, right)
+    return left:concat(right)
+  end)
+end
+

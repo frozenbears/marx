@@ -60,45 +60,46 @@ function Signal:bind(f)
   
   return Signal:create(function(observer)
     local binding = f()
-    local signals = {}
-    signals.count = 0
-    
-    local function complete_signal(s)
-      signals[s] = nil
-      signals.count = signals.count - 1
-      if signals.count == 0 then
-        observer.on_complete()
-      end
-    end
+    local signals = {self}
 
-    local function add_signal(s)
-      signals[s] = true
-      signals.count = signals.count + 1
-      
-      s:subscribe(function(...)
-        observer.on_next(...)
-      end, function()
-        complete_signal(s)
-      end, function(err)
-        observer.on_error(err)
-      end)  
-    end
-    
     self:subscribe(function(...)
       local s, stop = binding(...)
-      if (s) then add_signal(s) end
-      if not s or stop then complete_signal(self) end
+
+      function complete_signal(s)
+        table.delete(signals, s)
+        if #signals == 0 then
+          observer.on_complete()
+        end
+      end
+
+      function add_signal(s)
+        table.insert(signals, s)
+        s:subscribe(function(...)
+          if not signals._done then
+            observer.on_next(...)
+          end
+        end, function()
+          complete_signal(s)
+        end, function(err)
+          observer.on_error(err)
+        end)
+      end
+
+      --somewhat dirty hack until disposal is working
+      if not signals._done then
+        if s then
+          add_signal(s)
+        end
+        if (not s) or stop then
+          if stop then signals._done = true end
+          complete_signal(s)
+        end
+      end
     end, function()
-      complete_signal(self)  
+      complete_signal(self)
     end, function(err)
       observer.on_error(err)
     end)
   end)
 end
-
-
-
-
-
-
 
