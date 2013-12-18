@@ -1,20 +1,30 @@
 
-- abstract streams
-  - bind implementation for push
-    - (don't worry about disposables for now)
-    - test out with existing operator, such as filter
-    - take implemenation (good example of early termination)
-    - implement other existing operators in stream as applicable
-  - bind implementation for pull
-    - do it
-    - test out with filter 
-    - take implementation
-    - implement other existing operators in stream
-  - unit tests
-  - merge
+- stream
+  scan_with_start
+  combine_previous_with_start
+- push
+  - signal specific overrides
+  - signal specific operators
+- bind implementation for pull
+  - implementation
+  - test out with filter
+  - pull specific overrides
+  - additional pull operators
+- unit tests
+- merge stream branch
 
-- unsubscription/disposal for sequences
+- unsubscription/disposal
+
+- subject implementation
+  - this should just be a simple subclass that creates its own disposable,
+    overrides subscribe, and implements the subscriber functions
 
 - more operators
 
-- scheduling
+- useful push/pull/subject/etc sublcasses
+
+- scheduling (?)
+  might be useful with coroutines for scheduleAfterDelay type stuff
+  using a scheduler on subscription allows you to immediately
+  return a disposable without everything flowing instantaneously, aiding
+  in short circuiting signal flow
