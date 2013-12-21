@@ -1,8 +1,5 @@
 
-- stream
-  scan_with_start
-  combine_previous_with_start
-- push
+- signal
   - signal specific overrides
   - signal specific operators
 - bind implementation for pull
@@ -10,8 +7,10 @@
   - test out with filter
   - pull specific overrides
   - additional pull operators
-- unit tests
+- update unit tests
 - merge stream branch
+
+- schedulers
 
 - unsubscription/disposal
 
@@ -23,8 +22,3 @@
 
 - useful push/pull/subject/etc sublcasses
 
-- scheduling (?)
-  might be useful with coroutines for scheduleAfterDelay type stuff
-  using a scheduler on subscription allows you to immediately
-  return a disposable without everything flowing instantaneously, aiding
-  in short circuiting signal flow
