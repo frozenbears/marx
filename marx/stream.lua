@@ -198,3 +198,34 @@ function Stream:concat_all(streams)
   end)
 end
 
+
+--lack of an explicit tuple makes these a bit messy,
+--since in order to support varargs we need to
+--reverse the order of arguments and deal with vararg tables
+--directly in the reduce function.
+
+function Stream:scan(f, ...)
+  local start = {...}
+  return self:bind(function()
+    local running = start
+    return function(...)
+      local next = {...}
+      running = f(running, next)
+      return self:wrap(unpack(running))
+    end
+  end)
+end
+
+function Stream:combine_previous(f, ...)
+  local start = {...}
+  return self:bind(function()
+    local previous = start
+    return function(...)
+      local next = {...}
+      local result = self:wrap(unpack(f(previous,next)))
+      previous = next
+      return result
+    end
+  end)
+end
+
