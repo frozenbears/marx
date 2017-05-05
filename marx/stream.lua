@@ -183,9 +183,7 @@ function Stream:join(streams, f)
   end
 end
 
---this feels like a terrible naming convention but not sure
---how else to avoid a conflict with the instance method
---...maybe use param reflection to determine which implemenation to use?
+-- todo: consider alternate naming convention
 function Stream:zip_all(streams)
   return self:join(streams, function(left, right)
     return left:zip(right)
@@ -198,12 +196,7 @@ function Stream:concat_all(streams)
   end)
 end
 
-
---lack of an explicit tuple makes these a bit messy,
---since in order to support varargs we need to
---reverse the order of arguments and deal with vararg tables
---directly in the reduce function.
-
+-- todo: cleaner implementation using tuples
 function Stream:scan(f, ...)
   local start = {...}
   return self:bind(function()

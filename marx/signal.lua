@@ -42,19 +42,6 @@ function Signal:empty()
   end)
 end
 
---[[
-
-bind should:
-
-- subscribe to the original signal of values
-- any time the original signal sends a value, transform it using the bind function
-- if the bind function returns a signal, subscribe to it pass all its values through to the
-  observer as they're received
-- if the bind function asks the bind to terminate, complete the *original* signal
-- when *all* signals complete, send completed to the subscriber
-
-]]
-
 function Signal:bind(f)
   assert(f, "bind function must be non-nil")
   
